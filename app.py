@@ -41,6 +41,7 @@ def login():
 def daftar_pengumuman(nim):
     if nim in list_session:
         session = list_session[nim]
+        print(f"{nim} {session.nim}")
 
         return {
             "success": True,
