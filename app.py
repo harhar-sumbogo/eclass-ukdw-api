@@ -41,11 +41,26 @@ def login():
 def daftar_pengumuman(nim):
     if nim in list_session:
         session = list_session[nim]
-        print(f"{nim} {session.nim}")
 
         return {
             "success": True,
-            "result": session.get_daftar_pengumuman()
+            "results": session.get_daftar_pengumuman()
+        }
+    else:
+        return {
+            "success": False,
+            "message": "Sesi anda habis atau belum login"
+        }
+
+
+@app.route("/get_detail_pengumuman/<nim>/<id>", methods=["GET"])
+def detail_pengumuman(nim, id):
+    if nim in list_session:
+        session = list_session[nim]
+
+        return {
+            "success": True,
+            "results": session.get_detail_pengumuman(id)
         }
     else:
         return {

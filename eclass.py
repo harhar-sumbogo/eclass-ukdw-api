@@ -23,7 +23,7 @@ class Eclass:
 
         return session
 
-    def get_daftar_pengumuman(self):
+    def get_daftar_pengumuman(self) -> dict:
         with self.login() as session:
             home = session.get(self.base_url)
             with open("coba.html", "wb") as f:
@@ -41,7 +41,7 @@ class Eclass:
                 judul = next(content)
 
                 result = {
-                    "id": int(re.search("\d+", href).group()),
+                    "id": re.search("\d+", href).group(),
                     "matkul": pengumuman["title"],
                     "tanggal": tanggal,
                     "judul": judul[1:],
@@ -49,7 +49,33 @@ class Eclass:
                 transformed_pengumuman.append(result)
             return transformed_pengumuman
 
-    def get_detail_pengumuman(self, url_pengumuman):
-        href = url_pengumuman
-        id = re.search("\d+", href).group()
-        pengumuman_full = self.session.get(href)
+    def get_detail_pengumuman(self, id) -> dict:
+        href = f"https://eclass.ukdw.ac.id/e-class/id/pengumuman/baca/{id}"
+        with self.login() as session:
+            pengumuman_full = session.get(href)
+            soup = bs(pengumuman_full.text, "html.parser")
+
+            pengumuman = soup.find("div", {"id": "content-right"})
+
+            # mengambil judul dan tanggal pengumuman dari header
+            header = pengumuman.find("tr", {"class": "thread"}).td
+            header = header.stripped_strings
+            judul = next(header)
+            tanggal = next(header)
+
+            # mendapatkan isi konten dari pengumuman
+            isi = pengumuman.find("tr", {"class": "isithread"}).td
+            isi = isi.stripped_strings
+            result_isi = [re.sub("\s+", " ", content) for content in isi]
+            matkul = result_isi[1]
+            dosen = result_isi[-1]
+            isi_pengumuman = "\n".join(result_isi[2:-1])
+
+            return {
+                "id": id,
+                "matkul": matkul,
+                "dosen": dosen,
+                "judul": judul,
+                "tanggal": tanggal,
+                "isi_pengumuman": isi_pengumuman
+            }
